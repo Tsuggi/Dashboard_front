@@ -10,11 +10,8 @@ const model = ref([
     },
     {
         label: 'UI Components',
-        items: [
-            { label: 'Tonnages', icon: 'pi pi-fw pi-chart-bar', to: '/tonnages' },
-        ]
-    },
-    
+        items: [{ label: 'Tonnages', icon: 'pi pi-fw pi-chart-bar', to: '/tonnages' }]
+    }
 ]);
 </script>
 

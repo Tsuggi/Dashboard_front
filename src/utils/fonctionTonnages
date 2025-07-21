@@ -32,3 +32,38 @@ export function containsOnlyBelz(array) {
 export function filtrerParDct(data, nomsDct) {
   return data.filter(obj => nomsDct.includes(obj.dct?.dct));
 }
+
+export function SommeTonnagesParAnneesObj(data, annees) {
+  const ordreMois = [
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+  ];
+
+  const result = {};
+
+  annees.forEach(year => {
+    result[year] = {};
+    ordreMois.forEach(mois => {
+      result[year][mois] = 0;
+    });
+  });
+
+  data.forEach(item => {
+    const year = item.year;
+    const mois = item.month.toLowerCase();
+    if (annees.includes(year) && ordreMois.includes(mois)) {
+      result[year][mois] += item.tonnage;
+    }
+  });
+
+  return annees.map(year => ({
+    année: year,
+    tonnages: ordreMois.map(mois => result[year][mois])
+  }));
+}
+/*
+[
+  { année: 2023, tonnages: [10, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { année: 2024, tonnages: [5, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+]
+*/

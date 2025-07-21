@@ -17,9 +17,9 @@ const router = createRouter({
                     path: '/tonnages',
                     name: 'tonnages',
                     component: () => import('@/views/pages/TonnagesView.vue')
-                },
+                }
             ]
-        },
+        }
     ]
 });
 

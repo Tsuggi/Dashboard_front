@@ -1,38 +1,6 @@
-<template>
-    <div class="card space-y-4">
-        <div v-if="loading">Chargement...</div>
-        <div v-else>
-            <Chart type="line" :data="chartData" :options="chartOptions" class="h-[30rem]" />
-        </div>
-
-        <div class="card flex ">
-            <SelectButton v-model="dctSelected" :options="options" optionLabel="name" multiple aria-labelledby="multiple" />
-        </div>
-    </div>
-
-    <div class="card flex ">
-        <SelectButton v-model="fluxSelected" :options="optionsFluxMajor" optionLabel="flux" multiple aria-labelledby="multiple"/>
-    </div>
-
-    <div class="card flex ">
-        <SelectButton v-model="fluxSelected" :options="optionsFluxRepMajor" optionLabel="flux" multiple aria-labelledby="multiple"/>
-    </div>
-
-    <div class="card flex ">
-        <SelectButton v-model="fluxSelected" :options="optionsFluxRepMineur" optionLabel="flux" multiple aria-labelledby="multiple"/>
-    </div>
-
-    <div class="card flex ">
-        <SelectButton v-model="fluxSelected" :options="opttionsFluxMineurs" optionLabel="flux" multiple aria-labelledby="multiple"/>
-    </div>
-
-
-
-</template>
-
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { SommeTonnagesAllMois, filtrerParDct } from '@/utils/fonctionTonnages';
+import { SommeTonnagesAllMois, filtrerParDct, SommeTonnagesParAnneesObj } from '@/utils/fonctionTonnages';
 
 // Var pour le graphique
 const data = ref(null);
@@ -41,46 +9,22 @@ const chartData = ref();
 const chartOptions = ref();
 
 // Sélection des dct
-const dctSelected = ref(null);
+const dctSelected = ref([{ name: 'Belz' }, { name: 'Carnac' }, { name: 'Crach' }, { name: 'Quiberon' }, { name: 'Pluvigner' }, { name: 'Saint-Anne' }]);
 const options = ref([{ name: 'Belz' }, { name: 'Carnac' }, { name: 'Crach' }, { name: 'Quiberon' }, { name: 'Pluvigner' }, { name: 'Saint-Anne' }]);
-
+const resetDct = () => {
+    dctSelected.value = [];
+};
+// Sélection des années
+const yearSelected = ref([{ year: '2023' }, { year: '2024' }]);
+const optionsYear = ref([{ year: '2023' }, { year: '2024' }]);
 // Sélection des flux
 const fluxSelected = ref(null);
-const optionsFluxMajor = ref([
-    { flux: 'Valorisation energétique' },
-    { flux: 'Non valorisable' },
-    { flux: 'Déchets verts' },
-    { flux: 'Bois' },
-        { flux: 'Gravats' },
-    { flux: 'Carton' },
-        { flux: 'Métaux' },
-])
+const optionsFluxMajor = ref([{ flux: 'Valorisation energétique' }, { flux: 'Non valorisable' }, { flux: 'Déchets verts' }, { flux: 'Bois' }, { flux: 'Gravats' }, { flux: 'Carton' }, { flux: 'Métaux' }]);
 
-const optionsFluxRepMajor = ref([
-    { flux: 'EcoDDS' },
-    { flux: 'Plâtre' },
-    { flux: 'Plastiques PMCB' },
-    { flux: 'Mobilier en mélange' },
-    { flux: 'Bois PMCB' },
-    { flux: 'Menuiseries vitrées' },
-    { flux: 'DEEE' },
-    { flux: 'Briques plâtrières' },
-])
-const optionsFluxRepMineur = ref([
-    { flux: 'Néons' },
-    { flux: 'Lampes' },
-    { flux: 'Cartouches' },
-    { flux: 'Piles' },
-    { flux: 'Pneus Aliapur' },
-    { flux: 'Articles de Sport et Loisirs' },
-])
+const optionsFluxRepMajor = ref([{ flux: 'EcoDDS' }, { flux: 'Plâtre' }, { flux: 'Plastiques PMCB' }, { flux: 'Mobilier en mélange' }, { flux: 'Bois PMCB' }, { flux: 'Menuiseries vitrées' }, { flux: 'DEEE' }, { flux: 'Briques plâtrières' }]);
+const optionsFluxRepMineur = ref([{ flux: 'Néons' }, { flux: 'Lampes' }, { flux: 'Cartouches' }, { flux: 'Piles' }, { flux: 'Pneus Aliapur' }, { flux: 'Articles de Sport et Loisirs' }]);
 
-const opttionsFluxMineurs = ref([
-    { flux: 'Huiles minérales' },
-    { flux: 'DDS' },
-    { flux: 'Pneus' },
-    { flux: 'Batteries' }
-])
+const opttionsFluxMineurs = ref([{ flux: 'Huiles minérales' }, { flux: 'DDS' }, { flux: 'Pneus' }, { flux: 'Batteries' }]);
 
 watch(dctSelected, (nouvelleValeur) => {
     const tabDctSelected = ref(nouvelleValeur.map((item) => item.name));
@@ -88,6 +32,21 @@ watch(dctSelected, (nouvelleValeur) => {
     chartData.value.datasets[0].data = newValueChart;
     const labelValue = `Tonnages de tous les flux de ${nouvelleValeur.map((item) => item.name)}`;
     chartData.value.datasets[0].label = labelValue;
+});
+
+watch(yearSelected, (nouvelleValeur) => {
+    const tabYear = nouvelleValeur.map((o) => parseInt(o.year, 10));
+    const newValueChart = SommeTonnagesParAnneesObj(data.value, tabYear);
+
+    const documentStyle = getComputedStyle(document.documentElement);
+
+    chartData.value.datasets.push({
+        label: 'Tonnages all flux & all dct',
+        data: [80, 59, 80, 50, 56, 55, 40],
+        fill: true,
+        borderColor: documentStyle.getPropertyValue('--p-red-500'),
+        tension: 0.4
+    });
 });
 
 // Récupération des données de l'API
@@ -163,15 +122,35 @@ const setChartOptions = () => {
 };
 </script>
 
-<style>
-.multi-line-buttons .p-buttonset {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 0.5rem;
-}
+<template>
+    <div class="card space-y-4">
+        <div v-if="loading">Chargement...</div>
+        <div v-else>
+            <Chart type="line" :data="chartData" :options="chartOptions" class="h-[30rem]" />
+        </div>
 
-.multi-line-buttons .p-button {
-    flex: 1 0 calc(100% / 8 - 0.5rem); /* 8 boutons par ligne avec un petit espace */
-    box-sizing: border-box;
-}
-</style>
+        <div class="card flex space-x-2">
+            <SelectButton v-model="dctSelected" :options="options" optionLabel="name" multiple aria-labelledby="multiple" />
+            <Button icon="pi pi-times" severity="danger" rounded variant="outlined" aria-label="Cancel" @click="resetDct" />
+        </div>
+        <div class="card flex space-x-2">
+            <SelectButton v-model="yearSelected" :options="optionsYear" optionLabel="year" multiple aria-labelledby="multiple" />
+        </div>
+    </div>
+
+    <div class="card flex">
+        <SelectButton v-model="fluxSelected" :options="optionsFluxMajor" optionLabel="flux" multiple aria-labelledby="multiple" />
+    </div>
+
+    <div class="card flex">
+        <SelectButton v-model="fluxSelected" :options="optionsFluxRepMajor" optionLabel="flux" multiple aria-labelledby="multiple" />
+    </div>
+
+    <div class="card flex">
+        <SelectButton v-model="fluxSelected" :options="optionsFluxRepMineur" optionLabel="flux" multiple aria-labelledby="multiple" />
+    </div>
+
+    <div class="card flex">
+        <SelectButton v-model="fluxSelected" :options="opttionsFluxMineurs" optionLabel="flux" multiple aria-labelledby="multiple" />
+    </div>
+</template>
