@@ -17,7 +17,12 @@ const router = createRouter({
                     path: '/tonnages',
                     name: 'tonnages',
                     component: () => import('@/views/pages/TonnagesView.vue')
-                }
+                },
+                {
+                    path: '/todo',
+                    name: 'todo',
+                    component: () => import('@/views/pages/TodoView.vue')
+                },
             ]
         }
     ]

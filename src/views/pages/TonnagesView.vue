@@ -1,24 +1,21 @@
+// script setup
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { SommeTonnagesAllMois, filtrerParDct, filtrerParFlux } from '@/utils/fonctionTonnages';
 
-// Var pour le graphique
+// --- Références réactives ---
 const data2023 = ref(null);
 const data2024 = ref(null);
 const loading = ref(true);
 const chartData = ref();
 const chartOptions = ref();
 
-// Sélection des dct
+// --- DCT ---
 const dctSelected = ref([{ name: 'Belz' }, { name: 'Carnac' }, { name: 'Crach' }, { name: 'Quiberon' }, { name: 'Pluvigner' }, { name: 'Saint-Anne' }]);
-const options = ref([{ name: 'Belz' }, { name: 'Carnac' }, { name: 'Crach' }, { name: 'Quiberon' }, { name: 'Pluvigner' }, { name: 'Saint-Anne' }]);
-const resetDct = () => dctSelected.value = [];
-const resetFlux = () => fluxSelected.value = [];
+const optionsDct = ref([...dctSelected.value]);
+const resetDct = () => (dctSelected.value = []);
 
-// Sélection des années
-const yearSelected = ref([{ year: '2024' }]);
-const optionsYear = ref([{ year: '2023' }, { year: '2024' }]);
-// Sélection des flux
+// --- FLUX ---
 const fluxSelected = ref([
     { flux: 'Non valorisable' },
     { flux: 'Valorisation energétique' },
@@ -46,70 +43,48 @@ const fluxSelected = ref([
     { flux: 'Cartouches' },
     { flux: 'Pneus Aliapur' }
 ]);
-const optionsFluxMajor = ref([{ flux: 'Non valorisable' }, { flux: 'Valorisation energétique' }, { flux: 'Déchets verts' }, { flux: 'Gravats' }, { flux: 'Bois' }, { flux: 'Carton' }, { flux: 'Métaux' }]);
+const resetFlux = () => (fluxSelected.value = []);
 
-const optionsFluxRep = ref([
-    { flux: 'Mobilier en mélange' },
-    { flux: 'Bois PMCB' },
-    { flux: 'Plâtre' },
-    { flux: 'DEEE' },
-    { flux: 'EcoDDS' },
-    { flux: 'Plastiques PMCB' },
-    { flux: 'Menuiseries vitrées' },
-    { flux: 'Articles de Sport et Loisirs' },
-    { flux: 'Piles' },
-    { flux: 'Néons' },
-    { flux: 'Lampes' }
-]);
+const optionsFluxMajor = ref(['Non valorisable', 'Valorisation energétique', 'Déchets verts', 'Gravats', 'Bois', 'Carton', 'Métaux'].map((f) => ({ flux: f })));
 
-const optionsFluxMineurs = ref([{ flux: 'Briques plâtrières' }, { flux: 'Huiles minérales' }, { flux: 'DDS' }, { flux: 'Pneus' }, { flux: 'Batteries' }, { flux: 'Cartouches' }, { flux: 'Pneus Aliapur' }]);
+const optionsFluxRep = ref(['Mobilier en mélange', 'Bois PMCB', 'Plâtre', 'DEEE', 'EcoDDS', 'Plastiques PMCB', 'Menuiseries vitrées', 'Articles de Sport et Loisirs', 'Piles', 'Néons', 'Lampes'].map((f) => ({ flux: f })));
 
+const optionsFluxMineurs = ref(['Briques plâtrières', 'Huiles minérales', 'DDS', 'Pneus', 'Batteries', 'Cartouches', 'Pneus Aliapur'].map((f) => ({ flux: f })));
 
+// --- Watch réactif sur DCT et flux ---
 watch(
     () => ({ dct: dctSelected.value, flux: fluxSelected.value }),
-    (newVal, oldVal) => {
-        const tabDctSelected = newVal.dct.map((item) => item.name);
-        const tabFluxSelected = newVal.flux.map((item) => item.flux);
+    ({ dct, flux }) => {
+        const nomsDct = dct.map((item) => item.name);
+        const nomsFlux = flux.map((item) => item.flux);
 
-        console.log(tabFluxSelected);
+        const filtre2023 = filtrerParFlux(filtrerParDct(data2023.value, nomsDct), nomsFlux);
+        const filtre2024 = filtrerParFlux(filtrerParDct(data2024.value, nomsDct), nomsFlux);
 
-        const filtreDct2023 = ref(filtrerParDct(data2023.value, tabDctSelected));
-        const filtreDct2024 = ref(filtrerParDct(data2024.value, tabDctSelected));
-
-        const newValueChart2023 = SommeTonnagesAllMois(filtrerParFlux(filtreDct2023.value, tabFluxSelected));
-        const newValueChart2024 = SommeTonnagesAllMois(filtrerParFlux(filtreDct2024.value, tabFluxSelected));
-
-        chartData.value.datasets[1].data = newValueChart2024;
-        chartData.value.datasets[0].data = newValueChart2023;
-
-        console.log(newValueChart2023);
+        chartData.value.datasets[0].data = SommeTonnagesAllMois(filtre2023);
+        chartData.value.datasets[1].data = SommeTonnagesAllMois(filtre2024);
     }
 );
 
-// Récupération des données de l'API
+// --- Récupération des données ---
 onMounted(async () => {
     try {
-        const response2024 = await fetch('http://127.0.0.1:8000/tonnages/2024');
-        data2024.value = await response2024.json();
-        const response2023 = await fetch('http://127.0.0.1:8000/tonnages/2023');
-        data2023.value = await response2023.json();
+        const [res2024, res2023] = await Promise.all([fetch('http://127.0.0.1:8000/tonnages/2024'), fetch('http://127.0.0.1:8000/tonnages/2023')]);
+        data2024.value = await res2024.json();
+        data2023.value = await res2023.json();
 
-        // Mise en place du graphique
         chartData.value = setChartData();
         chartOptions.value = setChartOptions();
-
-        //chartData.value.datasets[0].data = SommeTonnagesAllMois(data.value);
-    } catch (error) {
-        data2023.value = 'Erreur lors du chargement des data 2023';
-        data2024.value = 'Erreur lors du chargement des date 2024';
+    } catch (e) {
+        console.error('Erreur lors du chargement des données', e);
     } finally {
-        loading.value = false;
+        loading.value = true;
     }
 });
 
+// --- Configuration du graphique ---
 const setChartData = () => {
-    const documentStyle = getComputedStyle(document.documentElement);
-
+    const style = getComputedStyle(document.documentElement);
     return {
         labels: ['Janv', 'Fév', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'],
         datasets: [
@@ -117,14 +92,14 @@ const setChartData = () => {
                 label: 'Tonnages 2023',
                 data: SommeTonnagesAllMois(data2023.value),
                 fill: false,
-                borderColor: documentStyle.getPropertyValue('--p-red-500'),
+                borderColor: style.getPropertyValue('--p-red-500'),
                 tension: 0.4
             },
             {
                 label: 'Tonnages 2024',
                 data: SommeTonnagesAllMois(data2024.value),
                 fill: false,
-                borderColor: documentStyle.getPropertyValue('--p-cyan-500'),
+                borderColor: style.getPropertyValue('--p-cyan-500'),
                 tension: 0.4
             }
         ]
@@ -132,37 +107,23 @@ const setChartData = () => {
 };
 
 const setChartOptions = () => {
-    const documentStyle = getComputedStyle(document.documentElement);
-    const textColor = documentStyle.getPropertyValue('--p-text-color');
-    const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
-    const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
-
+    const style = getComputedStyle(document.documentElement);
     return {
         maintainAspectRatio: false,
         aspectRatio: 0.6,
         plugins: {
             legend: {
-                labels: {
-                    color: textColor
-                }
+                labels: { color: style.getPropertyValue('--p-text-color') }
             }
         },
         scales: {
             x: {
-                ticks: {
-                    color: textColorSecondary
-                },
-                grid: {
-                    color: surfaceBorder
-                }
+                ticks: { color: style.getPropertyValue('--p-text-muted-color') },
+                grid: { color: style.getPropertyValue('--p-content-border-color') }
             },
             y: {
-                ticks: {
-                    color: textColorSecondary
-                },
-                grid: {
-                    color: surfaceBorder
-                }
+                ticks: { color: style.getPropertyValue('--p-text-muted-color') },
+                grid: { color: style.getPropertyValue('--p-content-border-color') }
             }
         }
     };
@@ -171,39 +132,36 @@ const setChartOptions = () => {
 
 <template>
     <div class="card space-y-4">
-        <!-- <div class="card flex justify-center">
-            <SelectButton v-model="yearSelected" :options="optionsYear" optionLabel="year" multiple aria-labelledby="multiple" />
-        </div> -->
-        <div v-if="loading">Chargement...</div>
+        <div v-if="loading">
+          Waiting
+            <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent" animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+        </div>
         <div v-else>
             <Chart type="line" :data="chartData" :options="chartOptions" class="h-[30rem]" />
         </div>
 
-        <div class="card flex space-x-2">
-            <div class="flex">
-                <h5>Déchèteries sélectionnées :</h5>
+        <div class="flex flex-wrap flex-col gap-4">
+            <div class="flex items-center gap-2">
+                <span>Déchèteries :</span>
+                <SelectButton v-model="dctSelected" :options="optionsDct" optionLabel="name" multiple />
+                <Button icon="pi pi-times" severity="danger" outlined @click="resetDct" />
             </div>
-            <SelectButton v-model="dctSelected" :options="options" optionLabel="name" multiple aria-labelledby="multiple" />
-            <Button icon="pi pi-times" severity="danger" rounded variant="outlined" aria-label="Cancel" @click="resetDct" />
-        </div>
-        <div class="card flex space-x-2">
-            <div class="flex">
-                <h5>Flux principaux :</h5>
+
+            <div class="flex items-center gap-2">
+                <span>Flux principaux :</span>
+                <SelectButton v-model="fluxSelected" :options="optionsFluxMajor" optionLabel="flux" multiple />
+                <Button icon="pi pi-times" severity="danger" outlined @click="resetFlux" />
             </div>
-            <SelectButton v-model="fluxSelected" :options="optionsFluxMajor" optionLabel="flux" multiple aria-labelledby="multiple" />
-            <Button icon="pi pi-times" severity="danger" rounded variant="outlined" aria-label="Cancel" @click="resetFlux" />
-        </div>
-        <div class="card flex space-x-2">
-            <div class="flex">
-                <h5>REP :</h5>
+
+            <div class="flex items-center gap-2">
+                <span>REP :</span>
+                <SelectButton v-model="fluxSelected" :options="optionsFluxRep" optionLabel="flux" multiple />
             </div>
-            <SelectButton v-model="fluxSelected" :options="optionsFluxRep" optionLabel="flux" multiple aria-labelledby="multiple" />
-        </div>
-        <div class="card flex space-x-2">
-            <div class="flex">
-                <h5>Flux minoritaires :</h5>
+
+            <div class="flex items-center gap-2">
+                <span>Flux mineurs :</span>
+                <SelectButton v-model="fluxSelected" :options="optionsFluxMineurs" optionLabel="flux" multiple />
             </div>
-            <SelectButton v-model="fluxSelected" :options="optionsFluxMineurs" optionLabel="flux" multiple aria-labelledby="multiple" />
         </div>
     </div>
 </template>
