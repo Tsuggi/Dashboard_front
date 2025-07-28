@@ -23,6 +23,11 @@ const router = createRouter({
                     name: 'todo',
                     component: () => import('@/views/pages/TodoView.vue')
                 },
+                {
+                    path: '/postit',
+                    name: 'postit',
+                    component: () => import('@/views/pages/PostitView.vue')
+                },
             ]
         }
     ]

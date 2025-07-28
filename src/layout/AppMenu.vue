@@ -12,7 +12,8 @@ const model = ref([
         label: 'Menu',
         items: [
             { label: 'Tonnages', icon: 'pi pi-fw pi-chart-bar', to: '/tonnages' },
-            { label: 'Todo', icon: 'pi pi-fw pi-book', to: '/todo' }
+            { label: 'Todo', icon: 'pi pi-fw pi-book', to: '/todo' },
+            { label: 'Postit', icon: 'pi pi-fw pi-bookmark', to: '/postit' },
         ]
     }
 ]);
