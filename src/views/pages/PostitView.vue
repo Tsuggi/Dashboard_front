@@ -1,10 +1,10 @@
 <template>
-    <div class="post-it-container" ref="boardRef">
+    <div class="post-it-container card" ref="boardRef">
         <div v-for="postIt in postIts" :key="postIt.id" class="post-it" :style="{ top: postIt.y + 'px', left: postIt.x + 'px' }" @mousedown="startDrag(postIt, $event)">
             <textarea v-model="postIt.content" placeholder="Écrivez quelque chose..." @mousedown.stop></textarea>
         </div>
 
-        <button @click="addPostIt" class="add-button">+</button>
+        <Button class="add-button" @click="addPostIt" icon="pi pi-plus" severity="success" rounded aria-label="Search" />
     </div>
 </template>
 
@@ -119,8 +119,7 @@ onUnmounted(() => {
     position: relative;
     width: 100%;
     height: 80vh; /* Hauteur de 80% de la fenêtre */
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
+    background-color: rgb(255, 255, 255);
     overflow: hidden; /* Assure que rien ne dépasse visuellement */
     margin: 0;
     padding: 0;
@@ -131,22 +130,8 @@ onUnmounted(() => {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    width: 50px;
     height: 50px;
-    border-radius: 50%;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.2s;
     z-index: 1000; /* S'assure qu'il est au-dessus des Post-it */
-}
-
-.add-button:hover {
-    background-color: #0056b3;
 }
 
 /* Style de base pour un Post-it */
@@ -154,9 +139,9 @@ onUnmounted(() => {
     position: absolute;
     width: 200px;
     height: 200px;
-    background-color: #fffacd; /* Jaune Post-it */
-    border: 1px solid #e0e090;
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.15);
+    background-color: var(--primary-color); /* Jaune Post-it */
+    border: 1px solid #6e6e68;
+    box-shadow: 5px 5px 10px rgba(83, 83, 83, 0.15);
     cursor: grab; /* Curseur pour indiquer qu'on peut attraper */
     user-select: none; /* Empêche la sélection du texte pendant le drag */
 }
@@ -171,6 +156,7 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     padding: 10px;
+    color: var(--text-color);
     box-sizing: border-box;
     background-color: transparent;
     border: none;
