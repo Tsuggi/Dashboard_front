@@ -6,7 +6,7 @@ import { SommeTonnagesAllMois, filtrerParDct, filtrerParFlux } from '@/utils/fon
 // --- Références réactives ---
 const data2023 = ref(null);
 const data2024 = ref(null);
-const loading = ref(true);
+const loading = ref(false);
 const chartData = ref();
 const chartOptions = ref();
 
@@ -77,8 +77,8 @@ onMounted(async () => {
         chartOptions.value = setChartOptions();
     } catch (e) {
         console.error('Erreur lors du chargement des données', e);
-    } finally {
         loading.value = true;
+    } finally {
     }
 });
 
@@ -133,7 +133,7 @@ const setChartOptions = () => {
 <template>
     <div class="card space-y-4">
         <div v-if="loading">
-          Waiting
+            Waiting
             <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent" animationDuration=".5s" aria-label="Custom ProgressSpinner" />
         </div>
         <div v-else>

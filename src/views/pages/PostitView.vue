@@ -130,7 +130,6 @@ onUnmounted(() => {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    height: 50px;
     z-index: 1000; /* S'assure qu'il est au-dessus des Post-it */
 }
 
