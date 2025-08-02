@@ -78,7 +78,6 @@ onMounted(async () => {
     } catch (e) {
         console.error('Erreur lors du chargement des données', e);
         loading.value = true;
-    } finally {
     }
 });
 
